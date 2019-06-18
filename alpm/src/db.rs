@@ -1,5 +1,5 @@
 use crate::utils::*;
-use crate::{Alpm, AlpmList, FreeMethod, Group, Package, Result, SigLevel, Usage, free};
+use crate::{free, Alpm, AlpmList, FreeMethod, Group, Package, Result, SigLevel, Usage};
 
 use std::ffi::CString;
 
@@ -74,7 +74,7 @@ impl<'a> Db<'a> {
         })
     }
 
-    pub fn pkgs(&self) -> Result<AlpmList<Package<'a>>> {
+    pub fn pkgs(&self) -> Result<AlpmList<'a, Package<'a>>> {
         let pkgs = unsafe { alpm_db_get_pkgcache(self.db) };
         self.handle.check_null(pkgs)?;
         Ok(AlpmList::new(self.handle, pkgs, FreeMethod::None))
@@ -93,7 +93,7 @@ impl<'a> Db<'a> {
     pub fn search<S: Into<String>, I: IntoIterator<Item = S>>(
         &self,
         list: I,
-    ) -> Result<AlpmList<Package<'a>>> {
+    ) -> Result<AlpmList<'a, Package<'a>>> {
         let list = to_strlist(list.into_iter());
         let pkgs = unsafe { alpm_db_search(self.db, list) };
         unsafe { alpm_list_free_inner(list, Some(free)) };
@@ -102,7 +102,7 @@ impl<'a> Db<'a> {
         Ok(AlpmList::new(self.handle, pkgs, FreeMethod::FreeList))
     }
 
-    pub fn groups(&self) -> Result<AlpmList<Group>> {
+    pub fn groups(&self) -> Result<AlpmList<'a, Group>> {
         let groups = unsafe { alpm_db_get_pkgcache(self.db) };
         self.handle.check_null(groups)?;
         Ok(AlpmList::new(self.handle, groups, FreeMethod::FreeList))

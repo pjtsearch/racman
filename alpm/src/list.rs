@@ -18,7 +18,7 @@ pub(crate) enum FreeMethod {
 }
 
 #[derive(Debug)]
-pub struct AlpmList<'a, T: 'a> {
+pub struct AlpmList<'a, T> {
     pub(crate) handle: &'a Alpm,
     pub(crate) list: *mut alpm_list_t,
     pub(crate) current: *mut alpm_list_t,
@@ -41,7 +41,7 @@ impl<'a, T> AlpmList<'a, T> {
         }
     }
 
-    pub fn iter(&'a self) -> AlpmList<'a, T> {
+    pub fn iter(&self) -> AlpmList<'a, T> {
         AlpmList {
             handle: self.handle,
             list: self.list,

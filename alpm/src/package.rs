@@ -236,7 +236,7 @@ impl<'a> Package<'a> {
 mod tests {
     use super::*;
     use crate::SigLevel;
-    use std::io::Read; 
+    use std::io::Read;
 
     #[test]
     fn test_depends() {

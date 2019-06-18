@@ -181,7 +181,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_lifetime() {
         let handle = Alpm::new("/", "tests/db").unwrap();
         let db = handle.register_syncdb("core", SigLevel::NONE).unwrap();
@@ -191,5 +190,15 @@ mod tests {
         drop(pkg);
         drop(db);
         assert_eq!(name, "linux");
+    }
+
+    #[test]
+    fn test_list_lifetime() {
+        let handle = Alpm::new("/", "tests/db").unwrap();
+        let db = handle.register_syncdb("core", SigLevel::NONE).unwrap();
+        let pkgs = db.pkgs().unwrap();
+
+        drop(db);
+        assert!(pkgs.count() > 10);
     }
 }
