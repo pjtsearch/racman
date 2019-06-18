@@ -63,7 +63,7 @@ impl<'a> Db<'a> {
         self.handle.check_ret(ret)
     }
 
-    pub fn pkg<S: Into<String>>(&self, name: S) -> Result<Package> {
+    pub fn pkg<S: Into<String>>(&self, name: S) -> Result<Package<'a>> {
         let name = CString::new(name.into()).unwrap();
         let pkg = unsafe { alpm_db_get_pkg(self.db, name.as_ptr()) };
         self.handle.check_null(pkg)?;
@@ -74,7 +74,7 @@ impl<'a> Db<'a> {
         })
     }
 
-    pub fn pkgs(&self) -> Result<AlpmList<Package>> {
+    pub fn pkgs(&self) -> Result<AlpmList<Package<'a>>> {
         let pkgs = unsafe { alpm_db_get_pkgcache(self.db) };
         self.handle.check_null(pkgs)?;
         Ok(AlpmList::new(self.handle, pkgs, FreeMethod::None))
