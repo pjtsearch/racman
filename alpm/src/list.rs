@@ -154,7 +154,7 @@ impl<'a> Iterator for AlpmList<'a, DepMissing> {
 }
 
 impl<'a> Iterator for AlpmList<'a, Conflict> {
-    type Item = Depend<'a>;
+    type Item = Conflict;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -162,12 +162,11 @@ impl<'a> Iterator for AlpmList<'a, Conflict> {
                 None
             } else {
                 let data = (*(self.current)).data;
-                let data = data as *mut alpm_depend_t;
+                let data = data as *mut alpm_conflict_t;
                 self.current = alpm_list_next(self.current);
-                let pkg = Depend {
-                    inner: data,
+                let pkg = Conflict {
+                    inner: *data,
                     drop: false,
-                    phantom: PhantomData,
                 };
                 Some(pkg)
             }
