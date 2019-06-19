@@ -160,3 +160,22 @@ impl Alpm {
         AlpmList::new(self, list, FreeMethod::FreeDepMissing)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::SigLevel;
+
+    #[test]
+    fn test_depend_lifetime() {
+        let handle = Alpm::new("/", "tests/db").unwrap();
+        let db = handle.register_syncdb("core", SigLevel::NONE).unwrap();
+        let pkg = db.pkg("linux").unwrap();
+        let depends = pkg.depends();
+        let vec = depends.collect::<Vec<_>>();
+        drop(pkg);
+        drop(db);
+        println!("{:?}", vec);
+    }
+
+}

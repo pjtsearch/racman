@@ -38,7 +38,7 @@ impl Conflict {
         unsafe { from_cstr((*self.inner).package2) }
     }
 
-    pub fn reason(&self) -> Depend<'_> {
+    pub fn reason(&self) -> Depend {
         Depend {
             inner: unsafe { (*self.inner).reason },
             drop: false,
