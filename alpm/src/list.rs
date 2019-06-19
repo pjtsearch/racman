@@ -213,6 +213,25 @@ impl<'a> Iterator for AlpmList<'a, &'a str> {
     }
 }
 
+impl<'a> Iterator for AlpmList<'a, String> {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            if self.current.is_null() {
+                None
+            } else {
+                let data = (*(self.current)).data;
+                let data = data as *const c_char;
+                self.current = alpm_list_next(self.current);
+                let s = CStr::from_ptr(data);
+                Some(s.to_str().unwrap().into())
+            }
+        }
+    }
+}
+
+
 impl<'a> IntoIterator for &'a AlpmList<'a, Package<'a>> {
     type Item = Package<'a>;
     type IntoIter = AlpmList<'a, Package<'a>>;

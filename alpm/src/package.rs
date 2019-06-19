@@ -212,12 +212,12 @@ impl<'a> Package<'a> {
         Ok(archive)
     }
 
-    pub fn required_by(&self) -> AlpmList<'a, &'a str> {
+    pub fn required_by(&self) -> AlpmList<'a, String> {
         let list = unsafe { alpm_pkg_compute_requiredby(self.pkg) };
         AlpmList::new(self.handle, list, FreeMethod::FreeInner)
     }
 
-    pub fn optional_for(&self) -> AlpmList<'a, &'a str> {
+    pub fn optional_for(&self) -> AlpmList<'a, String> {
         let list = unsafe { alpm_pkg_compute_optionalfor(self.pkg) };
         AlpmList::new(self.handle, list, FreeMethod::FreeInner)
     }

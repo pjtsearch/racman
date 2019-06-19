@@ -1025,5 +1025,5 @@ pub enum PrepareReturn<'a> {
 #[derive(Debug)]
 pub enum CommitReturn<'a> {
     FileConflict(AlpmList<'a, FileConflict>),
-    PkgInvalid(AlpmList<'a, &'a str>),
+    PkgInvalid(AlpmList<'a, String>),
 }
