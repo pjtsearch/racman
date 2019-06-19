@@ -7,7 +7,17 @@ use std::os::raw::c_char;
 
 use alpm_sys::*;
 
-#[derive(Debug)]
+macro_rules! size_hint {
+    ( ) => {
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            use alpm_sys::*;
+            let size = unsafe { alpm_list_count(self.current) };
+            (size, Some(size))
+        }
+    };
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum FreeMethod {
     FreeList,
     FreeInner,
@@ -54,6 +64,7 @@ impl<'a, T> AlpmList<'a, T> {
 
 impl<'a> Iterator for AlpmList<'a, Package<'a>> {
     type Item = Package<'a>;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -72,10 +83,12 @@ impl<'a> Iterator for AlpmList<'a, Package<'a>> {
             }
         }
     }
+
 }
 
 impl<'a> Iterator for AlpmList<'a, Group<'a>> {
     type Item = Group<'a>;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -97,6 +110,7 @@ impl<'a> Iterator for AlpmList<'a, Group<'a>> {
 
 impl<'a> Iterator for AlpmList<'a, Depend<'a>> {
     type Item = Depend<'a>;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -119,6 +133,7 @@ impl<'a> Iterator for AlpmList<'a, Depend<'a>> {
 
 impl<'a> Iterator for AlpmList<'a, FileConflict> {
     type Item = FileConflict;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -137,6 +152,7 @@ impl<'a> Iterator for AlpmList<'a, FileConflict> {
 
 impl<'a> Iterator for AlpmList<'a, DepMissing> {
     type Item = DepMissing;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -155,8 +171,11 @@ impl<'a> Iterator for AlpmList<'a, DepMissing> {
 
 impl<'a> Iterator for AlpmList<'a, Conflict> {
     type Item = Conflict;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
+        let drop = self.free != FreeMethod::FreeList && self.free != FreeMethod::None;
+
         unsafe {
             if self.current.is_null() {
                 None
@@ -166,7 +185,7 @@ impl<'a> Iterator for AlpmList<'a, Conflict> {
                 self.current = alpm_list_next(self.current);
                 let pkg = Conflict {
                     inner: data,
-                    drop: false,
+                    drop,
                 };
                 Some(pkg)
             }
@@ -176,6 +195,7 @@ impl<'a> Iterator for AlpmList<'a, Conflict> {
 
 impl<'a> Iterator for AlpmList<'a, Db<'a>> {
     type Item = Db<'a>;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -197,6 +217,7 @@ impl<'a> Iterator for AlpmList<'a, Db<'a>> {
 
 impl<'a> Iterator for AlpmList<'a, &'a str> {
     type Item = &'a str;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -215,6 +236,7 @@ impl<'a> Iterator for AlpmList<'a, &'a str> {
 
 impl<'a> Iterator for AlpmList<'a, String> {
     type Item = String;
+    size_hint!();
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
@@ -230,7 +252,6 @@ impl<'a> Iterator for AlpmList<'a, String> {
         }
     }
 }
-
 
 impl<'a> IntoIterator for &'a AlpmList<'a, Package<'a>> {
     type Item = Package<'a>;
@@ -266,15 +287,15 @@ impl<'a, T> Drop for AlpmList<'a, T> {
             }
             FreeMethod::FreeConflict => {
                 unsafe { alpm_list_free_inner(self.list, Some(conflict_free)) };
-                unsafe { alpm_list_free(self.list) };
+                unsafe { alpm_list_free(self.current) };
             }
             FreeMethod::FreeFileConflict => {
                 unsafe { alpm_list_free_inner(self.list, Some(fileconflict_free)) };
-                unsafe { alpm_list_free(self.list) };
+                unsafe { alpm_list_free(self.current) };
             }
             FreeMethod::FreeDepMissing => {
                 unsafe { alpm_list_free_inner(self.list, Some(depmissing_free)) };
-                unsafe { alpm_list_free(self.list) };
+                unsafe { alpm_list_free(self.current) };
             }
         }
     }

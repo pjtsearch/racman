@@ -1027,3 +1027,9 @@ pub enum CommitReturn<'a> {
     FileConflict(AlpmList<'a, FileConflict>),
     PkgInvalid(AlpmList<'a, String>),
 }
+
+impl Drop for FileConflict {
+    fn drop(&mut self) {
+        unsafe { alpm_fileconflict_free(self.inner) }
+    }
+}

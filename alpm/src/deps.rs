@@ -85,6 +85,12 @@ pub struct DepMissing {
     pub(crate) inner: *mut alpm_depmissing_t,
 }
 
+impl Drop for DepMissing {
+    fn drop(&mut self) {
+        unsafe { alpm_depmissing_free(self.inner) }
+    }
+}
+
 impl DepMissing {
     pub fn target<'a>(&self) -> &'a str {
         let target = unsafe { (*self.inner).target };
