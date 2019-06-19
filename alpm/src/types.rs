@@ -814,7 +814,7 @@ impl ConflictQuestion {
     pub fn conflict(&self) -> Conflict {
         unsafe {
             Conflict {
-                inner: *(*self.inner).conflict,
+                inner: (*self.inner).conflict,
                 drop: false,
             }
         }

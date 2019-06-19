@@ -1,4 +1,4 @@
-use crate::{free, Alpm, Conflict, DepMissing, Depend, FileConflict, Group, Package};
+use crate::{free, Alpm, Conflict, Db, DepMissing, Depend, FileConflict, Group, Package};
 
 use std::ffi::{c_void, CStr};
 use std::iter::Iterator;
@@ -165,12 +165,60 @@ impl<'a> Iterator for AlpmList<'a, Conflict> {
                 let data = data as *mut alpm_conflict_t;
                 self.current = alpm_list_next(self.current);
                 let pkg = Conflict {
-                    inner: *data,
+                    inner: data,
                     drop: false,
                 };
                 Some(pkg)
             }
         }
+    }
+}
+
+impl<'a> Iterator for AlpmList<'a, Db<'a>> {
+    type Item = Db<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            if self.current.is_null() {
+                None
+            } else {
+                let data = (*(self.current)).data;
+                let data = data as *mut alpm_db_t;
+                self.current = alpm_list_next(self.current);
+                let pkg = Db {
+                    db: data,
+                    handle: self.handle,
+                };
+                Some(pkg)
+            }
+        }
+    }
+}
+
+impl<'a> Iterator for AlpmList<'a, &'a str> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            if self.current.is_null() {
+                None
+            } else {
+                let data = (*(self.current)).data;
+                let data = data as *const c_char;
+                self.current = alpm_list_next(self.current);
+                let s = CStr::from_ptr(data);
+                Some(s.to_str().unwrap())
+            }
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a AlpmList<'a, Package<'a>> {
+    type Item = Package<'a>;
+    type IntoIter = AlpmList<'a, Package<'a>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 
@@ -210,32 +258,5 @@ impl<'a, T> Drop for AlpmList<'a, T> {
                 unsafe { alpm_list_free(self.list) };
             }
         }
-    }
-}
-
-impl<'a> Iterator for AlpmList<'a, &'a str> {
-    type Item = &'a str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        unsafe {
-            if self.current.is_null() {
-                None
-            } else {
-                let data = (*(self.current)).data;
-                let data = data as *const c_char;
-                self.current = alpm_list_next(self.current);
-                let s = CStr::from_ptr(data);
-                Some(s.to_str().unwrap())
-            }
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a AlpmList<'a, Package<'a>> {
-    type Item = Package<'a>;
-    type IntoIter = AlpmList<'a, Package<'a>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
     }
 }
