@@ -228,8 +228,8 @@ mod tests {
         let db = handle.register_syncdb("core", SigLevel::NONE).unwrap();
         let base = db.group("base").unwrap();
         assert_eq!(base.name(), "base");
-        assert!(base.packages().iter().count() > 10);
-        assert!(base.packages().iter().count() < 100);
+        assert!(base.packages().len() > 10);
+        assert!(base.packages().len() < 100);
     }
 
 }
