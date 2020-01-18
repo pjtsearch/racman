@@ -111,7 +111,6 @@ impl<'a> Db<'a> {
         Ok(Package {
             handle: self.handle,
             pkg,
-            drop: false,
         })
     }
 
@@ -302,6 +301,7 @@ mod tests {
         assert_eq!(res.len(), 1);
         assert_eq!(res[0].name(), "mkinitcpio-nfs-utils");
 
+        //db.search(["["].iter().cloned()).unwrap_err();
         db.search(["["].iter().cloned()).unwrap_err();
     }
 

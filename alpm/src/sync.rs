@@ -14,7 +14,6 @@ impl<'a> Package<'a> {
             Some(Package {
                 handle: self.handle,
                 pkg: ret,
-                drop: false,
             })
         }
     }

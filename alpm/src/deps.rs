@@ -199,7 +199,6 @@ impl<'a> AlpmList<'a, Db<'a>> {
         let pkg = Package {
             handle: self.handle,
             pkg,
-            drop: false,
         };
 
         Some(pkg)
@@ -216,7 +215,6 @@ impl<'a> AlpmList<'a, Package<'a>> {
         let pkg = Package {
             handle: self.handle,
             pkg,
-            drop: false,
         };
 
         Some(pkg)

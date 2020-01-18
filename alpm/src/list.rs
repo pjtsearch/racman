@@ -90,7 +90,6 @@ unsafe impl<'a> AsAlpmListItem<'a> for Package<'a> {
         Package {
             pkg: ptr as *mut alpm_pkg_t,
             handle,
-            drop: false,
         }
     }
 }

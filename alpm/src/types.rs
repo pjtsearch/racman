@@ -375,12 +375,10 @@ impl PackageOperationEvent {
         let oldpkg = Package {
             pkg: self.inner.oldpkg,
             handle: &self.handle,
-            drop: false,
         };
         let newpkg = Package {
             pkg: self.inner.newpkg,
             handle: &self.handle,
-            drop: false,
         };
 
         match self.inner.operation {
@@ -408,7 +406,6 @@ impl OptDepRemovalEvent {
         Package {
             pkg: self.inner.pkg,
             handle: &self.handle,
-            drop: false,
         }
     }
 
@@ -469,7 +466,6 @@ impl PacnewCreatedEvent {
             Some(Package {
                 pkg: self.inner.oldpkg,
                 handle: &self.handle,
-                drop: false,
             })
         }
     }
@@ -481,7 +477,6 @@ impl PacnewCreatedEvent {
             Some(Package {
                 pkg: self.inner.newpkg,
                 handle: &self.handle,
-                drop: false,
             })
         }
     }
@@ -503,7 +498,6 @@ impl PacsaveCreatedEvent {
             Some(Package {
                 pkg: self.inner.oldpkg,
                 handle: &self.handle,
-                drop: false,
             })
         }
     }
@@ -734,7 +728,6 @@ impl InstallIgnorepkgQuestion {
             Package {
                 pkg: (*self.inner).pkg,
                 handle: &self.handle,
-                drop: false,
             }
         }
     }
@@ -764,7 +757,6 @@ impl ReplaceQuestion {
             Package {
                 pkg: (*self.inner).newpkg,
                 handle: &self.handle,
-                drop: false,
             }
         }
     }
@@ -774,7 +766,6 @@ impl ReplaceQuestion {
             Package {
                 pkg: (*self.inner).oldpkg,
                 handle: &self.handle,
-                drop: false,
             }
         }
     }

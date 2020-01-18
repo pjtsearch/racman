@@ -11,19 +11,20 @@ use std::mem::transmute;
 
 use alpm_sys::*;
 
-#[derive(Debug)]
+pub trait AsPackage {
+    fn as_package(&self) -> Package;
+}
+
+impl<'a> AsPackage for Package<'a> {
+    fn as_package(&self) -> Package {
+        *self
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub struct Package<'a> {
     pub(crate) handle: &'a Alpm,
     pub(crate) pkg: *mut alpm_pkg_t,
-    pub(crate) drop: bool,
-}
-
-impl<'a> Drop for Package<'a> {
-    fn drop(&mut self) {
-        if self.drop {
-            unsafe { alpm_pkg_free(self.pkg) };
-        }
-    }
 }
 
 impl<'a> Package<'a> {
