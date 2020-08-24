@@ -100,9 +100,9 @@ impl Racman {
                 },
                 Event::PackageOperation(pkg_operation) => match pkg_operation.operation(){
                     PackageOperation::Install(pkg) => println!("Installing {}",pkg.name()),
-                    PackageOperation::Reinstall(_pkg,new_pkg) => println!("Reinstalling {}",new_pkg.name()),
-                    PackageOperation::Upgrade(pkg,new_pkg) => println!("Updating {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
-                    PackageOperation::Downgrade(pkg,new_pkg) => println!("Downgrade {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
+                    PackageOperation::Reinstall(new_pkg,_pkg) => println!("Reinstalling {}",new_pkg.name()),
+                    PackageOperation::Upgrade(new_pkg,pkg) => println!("Updating {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
+                    PackageOperation::Downgrade(new_pkg,pkg) => println!("Downgrade {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
                     PackageOperation::Remove(pkg) => println!("Removing {}",pkg.name()),
                 },
                 Event::Other(event) => match event{
