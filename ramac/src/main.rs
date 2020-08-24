@@ -4,7 +4,7 @@ use alpm::FetchCbReturn;
 use alpm::Event;
 use alpm::LogLevel;
 use std::rc::Rc;
-use alpm::{Alpm,TransFlag,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb};
+use alpm::{Alpm,TransFlag,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb,EventType};
 
 fn main() {
     match Racman::new() {
@@ -92,6 +92,35 @@ impl Racman {
         fn eventcb(event: &Event) {
             match event {
                 Event::DatabaseMissing(x) => println!("missing database: {}", x.dbname()),
+                Event::PkgDownload(pkg_download) => match pkg_download.event_type(){
+                    EventType::PkgDownloadStart => println!("Downloading `{}'",pkg_download.file()),
+                    EventType::PkgDownloadDone => println!("Done downloading `{}'",pkg_download.file()),
+                    EventType::PkgDownloadFailed => println!("Failed downloading `{}'",pkg_download.file()),
+                    _ => println!()
+                },
+                Event::Other(event) => match event{
+                    EventType::ResolveDepsStart => println!("Resolving dependencies"),
+                    EventType::ResolveDepsDone => println!("Done resolving dependencies"),
+                    EventType::InterConflictsStart => println!("Checking inter-confilicts"),
+                    EventType::InterConflictsDone => println!("Done checking inter-confilicts"),
+                    EventType::RetrieveStart => println!("Retrieving packages"),
+                    EventType::RetrieveDone => println!("Done retrieving packages"),
+                    EventType::KeyringStart => println!("Getting keyring"),
+                    EventType::KeyringDone => println!("Done getting keyring"),
+                    EventType::IntegrityStart => println!("Checking integrity"),
+                    EventType::IntegrityDone => println!("Done checking integrity"),
+                    EventType::LoadStart => println!("Loading"),
+                    EventType::LoadDone => println!("Done loading"),
+                    EventType::FileConflictsStart => println!("Checking file conflicts"),
+                    EventType::FileConflictsDone => println!("Done checking file conflicts"),
+                    EventType::TransactionStart => println!("Running transaction"),
+                    EventType::TransactionDone => println!("Done running transaction"),
+                    EventType::HookStart => println!("Running hooks"),
+                    EventType::HookDone => println!("Done running hooks"),
+                    EventType::HookRunStart => println!("Running hook"),
+                    EventType::HookRunDone => println!("Done running hook"),
+                    _ => println!("event: {:?}", event),
+                },
                 _ => println!("event: {:?}", event),
             }
         }
@@ -114,8 +143,8 @@ impl Racman {
     
         fn progresscb(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize) {
             println!(
-                "progress {:?}, {} {} {} {}",
-                progress, pkgname, percent, howmany, current
+                "{:?} progress on {}: {}% [{}/{}]",
+                progress, pkgname, percent, current, howmany
             );
         }
     
