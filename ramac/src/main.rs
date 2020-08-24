@@ -6,17 +6,25 @@ use std::cell::RefCell;
 use alpm::{Alpm,TransFlag,SigLevel,Package};
 
 fn main() {
-    let alpm = Alpm::new("/","/var/lib/pacman");
-    match alpm{
-        Ok(mut alpm)=>{
-            {get_db(&mut alpm);}
-            Pk::new(&mut alpm,"vi".to_owned()).install();
-            // alpm.set_use_syslog(true);
+    // let alpm = Alpm::new("/","/var/lib/pacman");
+    // match alpm{
+    //     Ok(mut alpm)=>{
+    //         {get_db(&mut alpm);}
+    //         Pk::new(&mut alpm,"vi".to_owned()).install();
+    //         // alpm.set_use_syslog(true);
 
-            // let pkg = get_pkg(&mut alpm,"vi".to_owned());
-            // install(&mut alpm, pkg)
+    //         // let pkg = get_pkg(&mut alpm,"vi".to_owned());
+    //         // install(&mut alpm, pkg)
+    //     },
+    //     Err(error)=>println!("{:#?}",error)            
+    // }
+    match Racman::new() {
+        Ok(mut racman)=>{
+            racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
+            racman.add_install("core", "vi");
+            racman.commit_transaction();
         },
-        Err(error)=>println!("{:#?}",error)            
+        Err(error)=>panic!(error)
     }
 
     // println!("Hello, world!");
@@ -52,6 +60,36 @@ impl Pk<'_> {
         let package = db.pkg(&self.name).unwrap();
         self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         self.alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
+        self.alpm.trans_prepare().expect("couldn't prepare transaction");
+        self.alpm.trans_commit().expect("couldn't run transaction");
+    }
+}
+
+struct Racman {
+    alpm:Alpm
+}
+
+impl Racman {
+    fn new()->Result<Racman,alpm::Error>{
+        match Alpm::new("/","/var/lib/pacman") {
+            Ok(alpm)=>Ok(Racman {
+                alpm
+            }),
+            Err(err)=>Err(err)
+        }
+    }
+    fn register_syncdb(&mut self,repo_name:&str,server:&str){
+        let syncdb = self.alpm.register_syncdb_mut(repo_name, SigLevel::NONE).unwrap();
+        syncdb.add_server(server)
+            .unwrap();
+    }
+    fn add_install(&mut self,repo_name:&str,name:&str){
+        let db = self.alpm.syncdbs().find(|db| db.name() == repo_name).unwrap();
+        let package = db.pkg(name).unwrap();
+        self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        self.alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
+    }
+    fn commit_transaction(&mut self){
         self.alpm.trans_prepare().expect("couldn't prepare transaction");
         self.alpm.trans_commit().expect("couldn't run transaction");
     }
