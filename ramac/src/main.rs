@@ -14,6 +14,7 @@ fn main() {
             racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
             racman.add_upgrade();
             racman.add_install("core","nano");
+            racman.add_remove("vi");
             // racman.add_remove("vi");
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
@@ -192,6 +193,17 @@ impl Racman {
         };
         self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         add_transactions(&self.transactions,&mut self.alpm);
+        println!("Transaction Summary:");
+        println!("To be added:");
+        self.alpm.trans_add().into_iter().for_each(|pkg|{
+            print!("{}-{} ",pkg.name(),pkg.version())
+        });
+        println!();
+        println!("To be removed:");
+        self.alpm.trans_remove().into_iter().for_each(|pkg|{
+            print!("{}-{} ",pkg.name(),pkg.version())
+        });
+        println!();
         self.alpm.trans_prepare().expect("couldn't prepare transaction");
         self.alpm.trans_commit().expect("couldn't run transaction");
         self.alpm.trans_release().expect("couldn't release transaction");
