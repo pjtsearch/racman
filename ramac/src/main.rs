@@ -47,18 +47,22 @@ struct UpgradeTransaction{
 impl Transaction for UpgradeTransaction {
     fn commit(&self,alpm:&mut Alpm){
         alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        let mut will_upgrade = false;
         for db in alpm.syncdbs(){
             let local_pkgs = alpm.localdb().pkgs().unwrap();
             local_pkgs.into_iter().for_each(|pkg|{
                 if let Ok(db_pkg)=db.pkg(pkg.name()) {
                     if db_pkg.version() != pkg.version(){
                         alpm.trans_add_pkg(db_pkg).expect("couldn't add pkg to transaction");
+                        will_upgrade = true;
                     }
                 }
             });
         }
-        alpm.trans_prepare().expect("couldn't prepare transaction");
-        alpm.trans_commit().expect("couldn't run transaction");
+        if will_upgrade{
+            alpm.trans_prepare().expect("couldn't prepare transaction");
+            alpm.trans_commit().expect("couldn't run transaction");
+        }
         alpm.trans_release().expect("couldn't release transaction");
     }
 }
