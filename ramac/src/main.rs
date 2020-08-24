@@ -4,7 +4,7 @@ use alpm::FetchCbReturn;
 use alpm::Event;
 use alpm::LogLevel;
 use std::rc::Rc;
-use alpm::{Alpm,TransFlag,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb,EventType};
+use alpm::{Alpm,TransFlag,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb,EventType,PackageOperation};
 
 fn main() {
     match Racman::new() {
@@ -97,6 +97,13 @@ impl Racman {
                     EventType::PkgDownloadDone => println!("Done downloading `{}'",pkg_download.file()),
                     EventType::PkgDownloadFailed => println!("Failed downloading `{}'",pkg_download.file()),
                     _ => println!()
+                },
+                Event::PackageOperation(pkg_operation) => match pkg_operation.operation(){
+                    PackageOperation::Install(pkg) => println!("Installing {}",pkg.name()),
+                    PackageOperation::Reinstall(_pkg,new_pkg) => println!("Reinstalling {}",new_pkg.name()),
+                    PackageOperation::Upgrade(pkg,new_pkg) => println!("Updating {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
+                    PackageOperation::Downgrade(pkg,new_pkg) => println!("Downgrade {}-{} to {}",pkg.name(),pkg.version(),new_pkg.version()),
+                    PackageOperation::Remove(pkg) => println!("Removing {}",pkg.name()),
                 },
                 Event::Other(event) => match event{
                     EventType::ResolveDepsStart => println!("Resolving dependencies"),
