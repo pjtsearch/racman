@@ -5,9 +5,10 @@ fn main() {
     match Racman::new() {
         Ok(mut racman)=>{
             racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
-            racman.add_install("core", "perl");
-            racman.add_install("core", "vi");
-            racman.add_install("core", "python-audit");
+            racman.add_upgrade();
+            // racman.add_install("core", "perl");
+            // racman.add_install("core", "vi");
+            // racman.add_install("core", "python-audit");
             racman.commit_transaction();
         },
         Err(error)=>panic!(error)
@@ -36,6 +37,29 @@ impl Transaction for InstallTransaction {
     }
 }
 
+
+#[derive(Clone)]
+struct UpgradeTransaction{
+}
+
+impl Transaction for UpgradeTransaction {
+    fn commit(&self,alpm:&mut Alpm){
+        alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        let core = alpm.syncdbs().find(|db| db.name() == "core").unwrap();
+        let local_pkgs = alpm.localdb().pkgs().unwrap();
+        local_pkgs.into_iter().for_each(|pkg|{
+            if let Ok(core_pkg)=core.pkg(pkg.name()) {
+                if core_pkg.version() != pkg.version(){
+                    alpm.trans_add_pkg(core_pkg).expect("couldn't add pkg to transaction");
+                }
+            }
+        });
+        alpm.trans_prepare().expect("couldn't prepare transaction");
+        alpm.trans_commit().expect("couldn't run transaction");
+        alpm.trans_release().expect("couldn't release transaction");
+    }
+}
+
 struct Racman {
     alpm:Alpm,
     transactions:Vec<Rc<dyn Transaction>>
@@ -58,6 +82,9 @@ impl Racman {
     }
     fn add_install(&mut self,repo_name:&str,name:&str){
         self.transactions.push(Rc::new(InstallTransaction{repo_name:repo_name.to_owned().clone(),name:name.to_owned().clone()}));
+    }
+    fn add_upgrade(&mut self){
+        self.transactions.push(Rc::new(UpgradeTransaction{}));
     }
     fn commit_transaction(&mut self){
         let commit = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm| {
