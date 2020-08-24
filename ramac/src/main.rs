@@ -5,7 +5,9 @@ fn main() {
     match Racman::new() {
         Ok(mut racman)=>{
             racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
+            racman.add_install("core", "perl");
             racman.add_install("core", "vi");
+            racman.add_install("core", "python-audit");
             racman.commit_transaction();
         },
         Err(error)=>panic!(error)
@@ -30,6 +32,7 @@ impl Transaction for InstallTransaction {
         alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
         alpm.trans_prepare().expect("couldn't prepare transaction");
         alpm.trans_commit().expect("couldn't run transaction");
+        alpm.trans_release().expect("couldn't release transaction");
     }
 }
 
