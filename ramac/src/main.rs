@@ -7,7 +7,9 @@ fn main() {
             racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
             racman.register_syncdb("extra", "http://mirrors.evowise.com/archlinux/extra/os/x86_64/");
             racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
-            racman.add_remove("nano");
+            racman.add_upgrade();
+            racman.add_install("core","nano");
+            racman.add_remove("vi");
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
             // racman.add_install("core", "python-audit");
@@ -18,7 +20,7 @@ fn main() {
 }
 
 trait Transaction {
-    fn commit(&self,alpm:&mut Alpm);
+    fn add(&self,alpm:&mut Alpm);
 }
 
 #[derive(Clone)]
@@ -28,14 +30,10 @@ struct InstallTransaction{
 }
 
 impl Transaction for InstallTransaction {
-    fn commit(&self,alpm:&mut Alpm){
+    fn add(&self,alpm:&mut Alpm){
         let db = alpm.syncdbs().find(|db| db.name() == self.repo_name).unwrap();
         let package = db.pkg(&self.name).unwrap();
-        alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
-        alpm.trans_prepare().expect("couldn't prepare transaction");
-        alpm.trans_commit().expect("couldn't run transaction");
-        alpm.trans_release().expect("couldn't release transaction");
     }
 }
 
@@ -45,8 +43,7 @@ struct UpgradeTransaction{
 }
 
 impl Transaction for UpgradeTransaction {
-    fn commit(&self,alpm:&mut Alpm){
-        alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+    fn add(&self,alpm:&mut Alpm){
         let mut will_upgrade = false;
         for db in alpm.syncdbs(){
             let local_pkgs = alpm.localdb().pkgs().unwrap();
@@ -59,11 +56,6 @@ impl Transaction for UpgradeTransaction {
                 }
             });
         }
-        if will_upgrade{
-            alpm.trans_prepare().expect("couldn't prepare transaction");
-            alpm.trans_commit().expect("couldn't run transaction");
-        }
-        alpm.trans_release().expect("couldn't release transaction");
     }
 }
 
@@ -73,14 +65,10 @@ struct RemoveTransaction{
 }
 
 impl Transaction for RemoveTransaction {
-    fn commit(&self,alpm:&mut Alpm){
+    fn add(&self,alpm:&mut Alpm){
         let db = alpm.localdb();
         let package = db.pkg(&self.name).unwrap();
-        alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         alpm.trans_remove_pkg(package).expect("couldn't add pkg to transaction");
-        alpm.trans_prepare().expect("couldn't prepare transaction");
-        alpm.trans_commit().expect("couldn't run transaction");
-        alpm.trans_release().expect("couldn't release transaction");
     }
 }
 
@@ -114,11 +102,15 @@ impl Racman {
         self.transactions.push(Rc::new(RemoveTransaction{name:name.to_owned()}));
     }
     fn commit_transaction(&mut self){
-        let commit = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm| {
+        let add_transactions = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm| {
             transactions.iter().for_each(|transaction|{
-                transaction.commit(alpm);
+                transaction.add(alpm);
             });
         };
-        commit(&self.transactions,&mut self.alpm);
+        self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        add_transactions(&self.transactions,&mut self.alpm);
+        self.alpm.trans_prepare().expect("couldn't prepare transaction");
+        self.alpm.trans_commit().expect("couldn't run transaction");
+        self.alpm.trans_release().expect("couldn't release transaction");
     }
 }
