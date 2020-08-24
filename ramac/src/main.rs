@@ -1,5 +1,10 @@
+use alpm::Progress;
+use alpm::Question;
+use alpm::FetchCbReturn;
+use alpm::Event;
+use alpm::LogLevel;
 use std::rc::Rc;
-use alpm::{Alpm,TransFlag,SigLevel};
+use alpm::{Alpm,TransFlag,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb};
 
 fn main() {
     match Racman::new() {
@@ -9,7 +14,7 @@ fn main() {
             racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
             racman.add_upgrade();
             racman.add_install("core","nano");
-            racman.add_remove("vi");
+            // racman.add_remove("vi");
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
             // racman.add_install("core", "python-audit");
@@ -79,11 +84,53 @@ struct Racman {
 
 impl Racman {
     fn new<'a>()->Result<Racman,alpm::Error>{
+        fn logcb(level: LogLevel, msg: &str) {
+            if level == LogLevel::ERROR {
+                print!("log {}", msg);
+            }
+        }
+        fn eventcb(event: &Event) {
+            match event {
+                Event::DatabaseMissing(x) => println!("missing database: {}", x.dbname()),
+                _ => println!("event: {:?}", event),
+            }
+        }
+    
+        fn fetchcb(_url: &str, _path: &str, _force: bool) -> FetchCbReturn {
+            FetchCbReturn::Ok
+        }
+    
+        fn questioncb(question: &Question) {
+            println!("question {:?}", question);
+            match question {
+                Question::Conflict(x) => {
+                    let c = x.conflict();
+                    println!("CONFLICT BETWEEN {} AND {}", c.package1(), c.package2(),);
+                    println!("conflict: {}", c.reason());
+                }
+                _ => (),
+            }
+        }
+    
+        fn progresscb(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize) {
+            println!(
+                "progress {:?}, {} {} {} {}",
+                progress, pkgname, percent, howmany, current
+            );
+        }
+    
         match Alpm::new("/","/var/lib/pacman") {
-            Ok(alpm)=>Ok(Racman {
-                alpm,
-                transactions:vec![]
-            }),
+            Ok(alpm)=>{
+                set_logcb!(alpm, logcb);
+                set_eventcb!(alpm, eventcb);
+                set_fetchcb!(alpm, fetchcb);
+                set_questioncb!(alpm, questioncb);
+                set_progresscb!(alpm, progresscb);
+                Ok(Racman {
+                    alpm,
+                    transactions:vec![]
+                })
+            },
             Err(err)=>Err(err)
         }
     }
