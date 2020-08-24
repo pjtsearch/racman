@@ -5,6 +5,8 @@ fn main() {
     match Racman::new() {
         Ok(mut racman)=>{
             racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
+            racman.register_syncdb("extra", "http://mirrors.evowise.com/archlinux/extra/os/x86_64/");
+            racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
             racman.add_upgrade();
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
@@ -45,15 +47,16 @@ struct UpgradeTransaction{
 impl Transaction for UpgradeTransaction {
     fn commit(&self,alpm:&mut Alpm){
         alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
-        let core = alpm.syncdbs().find(|db| db.name() == "core").unwrap();
-        let local_pkgs = alpm.localdb().pkgs().unwrap();
-        local_pkgs.into_iter().for_each(|pkg|{
-            if let Ok(core_pkg)=core.pkg(pkg.name()) {
-                if core_pkg.version() != pkg.version(){
-                    alpm.trans_add_pkg(core_pkg).expect("couldn't add pkg to transaction");
+        for db in alpm.syncdbs(){
+            let local_pkgs = alpm.localdb().pkgs().unwrap();
+            local_pkgs.into_iter().for_each(|pkg|{
+                if let Ok(db_pkg)=db.pkg(pkg.name()) {
+                    if db_pkg.version() != pkg.version(){
+                        alpm.trans_add_pkg(db_pkg).expect("couldn't add pkg to transaction");
+                    }
                 }
-            }
-        });
+            });
+        }
         alpm.trans_prepare().expect("couldn't prepare transaction");
         alpm.trans_commit().expect("couldn't run transaction");
         alpm.trans_release().expect("couldn't release transaction");
