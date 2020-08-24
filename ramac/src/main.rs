@@ -3,6 +3,7 @@ use alpm::Pkg;
 use std::sync::Mutex;
 use std::sync::Arc;
 use std::cell::RefCell;
+use std::rc::Rc;
 use alpm::{Alpm,TransFlag,SigLevel,Package};
 
 fn main() {
@@ -78,11 +79,11 @@ impl Transaction for InstallTransaction {}
 
 struct Racman {
     alpm:Alpm,
-    transactions:Vec<InstallTransaction>
+    transactions:Vec<Rc<Transaction>>
 }
 
 impl Racman {
-    fn new()->Result<Racman,alpm::Error>{
+    fn new<'a>()->Result<Racman,alpm::Error>{
         match Alpm::new("/","/var/lib/pacman") {
             Ok(alpm)=>Ok(Racman {
                 alpm,
@@ -97,9 +98,9 @@ impl Racman {
             .unwrap();
     }
     fn add_install(&mut self,repo_name:&str,name:&str){
-        let db = self.alpm.syncdbs().find(|db| db.name() == repo_name).unwrap();
-        let package = db.pkg(name).unwrap();
-        self.transactions.push(InstallTransaction{repo_name:repo_name.to_owned(),name:name.to_owned()});
+        // let db = self.alpm.syncdbs().find(|db| db.name() == repo_name).unwrap();
+        // let package = db.pkg(name).unwrap();
+        self.transactions.push(Rc::new(InstallTransaction{repo_name:repo_name.to_owned().clone(),name:name.to_owned().clone()}));
         // self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         // self.alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
     }
