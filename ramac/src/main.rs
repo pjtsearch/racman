@@ -65,15 +65,28 @@ impl Pk<'_> {
     }
 }
 
+trait Transaction {
+}
+
+#[derive(Clone)]
+struct InstallTransaction{
+    repo_name:String,
+    name:String
+}
+
+impl Transaction for InstallTransaction {}
+
 struct Racman {
-    alpm:Alpm
+    alpm:Alpm,
+    transactions:Vec<InstallTransaction>
 }
 
 impl Racman {
     fn new()->Result<Racman,alpm::Error>{
         match Alpm::new("/","/var/lib/pacman") {
             Ok(alpm)=>Ok(Racman {
-                alpm
+                alpm,
+                transactions:vec![]
             }),
             Err(err)=>Err(err)
         }
@@ -86,8 +99,9 @@ impl Racman {
     fn add_install(&mut self,repo_name:&str,name:&str){
         let db = self.alpm.syncdbs().find(|db| db.name() == repo_name).unwrap();
         let package = db.pkg(name).unwrap();
-        self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
-        self.alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
+        self.transactions.push(InstallTransaction{repo_name:repo_name.to_owned(),name:name.to_owned()});
+        // self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        // self.alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
     }
     fn commit_transaction(&mut self){
         self.alpm.trans_prepare().expect("couldn't prepare transaction");
