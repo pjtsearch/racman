@@ -7,7 +7,7 @@ fn main() {
             racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
             racman.register_syncdb("extra", "http://mirrors.evowise.com/archlinux/extra/os/x86_64/");
             racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
-            racman.add_upgrade();
+            racman.add_remove("nano");
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
             // racman.add_install("core", "python-audit");
@@ -63,6 +63,23 @@ impl Transaction for UpgradeTransaction {
     }
 }
 
+#[derive(Clone)]
+struct RemoveTransaction{
+    name:String
+}
+
+impl Transaction for RemoveTransaction {
+    fn commit(&self,alpm:&mut Alpm){
+        let db = alpm.localdb();
+        let package = db.pkg(&self.name).unwrap();
+        alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
+        alpm.trans_remove_pkg(package).expect("couldn't add pkg to transaction");
+        alpm.trans_prepare().expect("couldn't prepare transaction");
+        alpm.trans_commit().expect("couldn't run transaction");
+        alpm.trans_release().expect("couldn't release transaction");
+    }
+}
+
 struct Racman {
     alpm:Alpm,
     transactions:Vec<Rc<dyn Transaction>>
@@ -88,6 +105,9 @@ impl Racman {
     }
     fn add_upgrade(&mut self){
         self.transactions.push(Rc::new(UpgradeTransaction{}));
+    }
+    fn add_remove(&mut self,name:&str){
+        self.transactions.push(Rc::new(RemoveTransaction{name:name.to_owned()}));
     }
     fn commit_transaction(&mut self){
         let commit = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm| {
