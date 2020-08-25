@@ -1,5 +1,5 @@
 [package]
-name = "ramac"
+name = "racman"
 version = "0.1.0"
 authors = ["PJTSearch <pjtsignups@gmail.com>"]
 edition = "2018"

@@ -14,7 +14,7 @@ pub fn progresscb(progress: Progress, _pkgname: &str, percent: i32, _howmany: us
             let bar = ProgressBar::new(100);
             bar.set_style(
                 ProgressStyle::default_bar()
-                    .template(" {prefix} [{wide_bar}] {pos}/{len} ")
+                    .template("   {prefix} [{wide_bar}] {pos}/{len} ")
                     .progress_chars("=> "),
             );
             bar.set_prefix(&format!("{:?}",progress));

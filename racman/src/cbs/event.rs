@@ -4,9 +4,9 @@ pub fn eventcb(event: &Event) {
     match event {
         Event::DatabaseMissing(x) => println!("missing database: {}", x.dbname()),
         Event::PkgDownload(pkg_download) => match pkg_download.event_type(){
-            EventType::PkgDownloadStart => println!("Downloading `{}'",pkg_download.file()),
-            EventType::PkgDownloadDone => println!("Done downloading `{}'",pkg_download.file()),
-            EventType::PkgDownloadFailed => println!("Failed downloading `{}'",pkg_download.file()),
+            EventType::PkgDownloadStart => println!("   Downloading `{}'",pkg_download.file()),
+            EventType::PkgDownloadDone => println!("   Done downloading `{}'",pkg_download.file()),
+            EventType::PkgDownloadFailed => println!("   Failed downloading `{}'",pkg_download.file()),
             _ => println!()
         },
         Event::PackageOperation(pkg_operation) => match pkg_operation.operation(){
@@ -35,8 +35,8 @@ pub fn eventcb(event: &Event) {
             EventType::TransactionDone => println!("Done running transaction"),
             EventType::HookStart => println!("Running hooks"),
             EventType::HookDone => println!("Done running hooks"),
-            EventType::HookRunStart => println!("Running hook"),
-            EventType::HookRunDone => println!("Done running hook"),
+            EventType::HookRunStart => println!("   Running hook"),
+            EventType::HookRunDone => println!("   Done running hook"),
             _ => println!("event: {:?}", event),
         },
         _ => println!("event: {:?}", event),
