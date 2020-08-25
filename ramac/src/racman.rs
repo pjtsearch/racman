@@ -23,7 +23,7 @@ impl Racman {
             Ok(alpm)=>{
                 set_logcb!(alpm, logcb);
                 set_eventcb!(alpm, eventcb);
-                set_fetchcb!(alpm, fetchcb);
+                // set_fetchcb!(alpm, fetchcb);
                 set_questioncb!(alpm, questioncb);
                 set_progresscb!(alpm, progresscb);
                 Ok(Racman {
