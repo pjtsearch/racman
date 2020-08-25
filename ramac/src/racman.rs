@@ -1,3 +1,4 @@
+use quest::yesno;
 use crate::cbs::progress::progresscb;
 use crate::cbs::question::questioncb;
 use crate::cbs::fetch::fetchcb;
@@ -11,6 +12,9 @@ use crate::transaction::remove::{RemoveTransaction};
 
 use std::rc::Rc;
 use alpm::{Alpm,TransFlag,Progress,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb};
+
+use std::io;
+use std::io::Write;
 
 pub struct Racman {
     alpm:Alpm,
@@ -67,8 +71,17 @@ impl Racman {
             print!("{}-{} ",pkg.name(),pkg.version())
         });
         println!();
-        self.alpm.trans_prepare().expect("couldn't prepare transaction");
-        self.alpm.trans_commit().expect("couldn't run transaction");
-        self.alpm.trans_release().expect("couldn't release transaction");
+        print!("Commit transaction? [y/N]:");
+        io::stdout().flush().unwrap();
+        let question = yesno(false);
+        if let Ok(opt) = question {
+            if let Some(choice) = opt{
+                if choice{
+                    self.alpm.trans_prepare().expect("couldn't prepare transaction");
+                    self.alpm.trans_commit().expect("couldn't run transaction");
+                    self.alpm.trans_release().expect("couldn't release transaction");
+                }
+            }
+        }
     }
 }
