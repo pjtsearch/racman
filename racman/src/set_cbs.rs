@@ -1,17 +1,51 @@
+use alpm::Package;
+use alpm::AlpmList;
 use alpm::Progress;
 use alpm::Question;
 use alpm::LogLevel;
 use alpm::Event;
 use crate::Racman;
 
-pub trait CBs {
-    fn set_eventcb(&self,cb:fn(event: &Event)->());
-    fn set_logcb(&self,cb:fn(level: LogLevel, msg: &str)->());
-    fn set_questioncb(&self,cb:fn(question: &Question)->());
-    fn set_progresscb(&self,cb:fn(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize)->());
+pub struct CBs {
+    pub eventcb: fn(event: &Event),
+    pub logcb: fn(level: LogLevel, msg: &str),
+    pub questioncb: fn(question: &Question),
+    pub progresscb: fn(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize),
+    pub transaction_confirmationcb: fn(adding:AlpmList<Package>,removing:AlpmList<Package>)->bool
 }
-impl CBs for Racman {
-    fn set_eventcb(&self,cb:fn(event: &Event)->()){
+
+impl Default for CBs {
+    fn default()->CBs{
+        fn eventcb(_event: &Event){}
+        fn logcb(_level: LogLevel, _msg: &str){}
+        fn questioncb(_question: &Question){}
+        fn progresscb(_progress: Progress, _pkgname: &str, _percent: i32, _howmany: usize, _current: usize){}
+        fn transaction_confirmationcb(_adding:AlpmList<Package>,_removing:AlpmList<Package>)->bool{true}
+
+        Self {
+            eventcb,
+            logcb,
+            questioncb,
+            progresscb,
+            transaction_confirmationcb
+        }
+    }
+}
+
+pub trait SetCBs {
+    fn set_eventcb(&mut self,cb:fn(event: &Event)->());
+    fn set_logcb(&mut self,cb:fn(level: LogLevel, msg: &str)->());
+    fn set_questioncb(&mut self,cb:fn(question: &Question)->());
+    fn set_progresscb(&mut self,cb:fn(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize)->());
+    fn set_transaction_confirmationcb(&mut self,cb:fn(adding:AlpmList<Package>,removing:AlpmList<Package>)->bool);
+}
+impl SetCBs for Racman {
+    fn set_transaction_confirmationcb(&mut self,cb:fn(adding:AlpmList<Package>,removing:AlpmList<Package>)->bool){
+        self.cbs.transaction_confirmationcb = cb;
+    }
+
+    fn set_eventcb(&mut self,cb:fn(event: &Event)->()){
+        self.cbs.eventcb = cb;
         use std::ptr;
         use alpm::alpm_sys::*;
 
@@ -32,7 +66,8 @@ impl CBs for Racman {
 
         unsafe { alpm_option_set_eventcb(self.alpm.as_alpm_handle_t(), Some(c_eventcb)) };
     }
-    fn set_logcb(&self,cb:fn(level: LogLevel, msg: &str)->()){
+    fn set_logcb(&mut self,cb:fn(level: LogLevel, msg: &str)->()){
+        self.cbs.logcb = cb;
         use std::ffi::{c_void, CStr};
         use std::os::raw::{c_char, c_int};
         use std::ptr;
@@ -70,7 +105,8 @@ impl CBs for Racman {
 
         unsafe { alpm_option_set_logcb(self.alpm.as_alpm_handle_t(), Some(c_logcb)) };
     }
-    fn set_questioncb(&self,cb:fn(question: &Question)->()){
+    fn set_questioncb(&mut self,cb:fn(question: &Question)->()){
+        self.cbs.questioncb = cb;
         use std::ptr;
         use alpm::alpm_sys::*;
 
@@ -92,7 +128,8 @@ impl CBs for Racman {
 
         unsafe { alpm_option_set_questioncb(self.alpm.as_alpm_handle_t(), Some(c_questioncb)) };
     }
-    fn set_progresscb(&self,cb:fn(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize)->()){
+    fn set_progresscb(&mut self,cb:fn(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize)->()){
+        self.cbs.progresscb = cb;
         use std::ffi::CStr;
         use std::mem::transmute;
         use std::os::raw::{c_char, c_int};

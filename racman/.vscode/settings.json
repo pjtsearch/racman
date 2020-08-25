@@ -1,9 +1,18 @@
 {
     "cSpell.words": [
         "alpm",
+        "confirmationcb",
+        "eventcb",
+        "howmany",
+        "logcb",
         "pacman",
+        "pkgname",
+        "progresscb",
+        "questioncb",
         "racman",
+        "summarycb",
         "syncdb",
-        "syncdbs"
+        "syncdbs",
+        "vasprintf"
     ]
 }

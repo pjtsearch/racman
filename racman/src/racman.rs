@@ -1,4 +1,4 @@
-use quest::yesno;
+use crate::set_cbs::CBs;
 
 use crate::transaction::{Transaction};
 use crate::transaction::install::{InstallTransaction};
@@ -8,12 +8,10 @@ use crate::transaction::remove::{RemoveTransaction};
 use std::rc::Rc;
 use alpm::{Alpm,TransFlag,SigLevel};
 
-use std::io;
-use std::io::Write;
-
 pub struct Racman {
     pub alpm:Alpm,
-    transactions:Vec<Rc<dyn Transaction>>
+    transactions:Vec<Rc<dyn Transaction>>,
+    pub cbs:CBs
 }
 
 impl Racman {
@@ -22,7 +20,8 @@ impl Racman {
             Ok(alpm)=>{
                 Ok(Racman {
                     alpm,
-                    transactions:vec![]
+                    transactions:vec![],
+                    cbs:CBs::default()
                 })
             },
             Err(err)=>Err(err)
@@ -50,28 +49,10 @@ impl Racman {
         };
         self.alpm.trans_init(TransFlag::NONE).expect("couldn't init transaction");
         add_transactions(&self.transactions,&mut self.alpm);
-        println!("Transaction Summary:");
-        println!("To be added:");
-        self.alpm.trans_add().into_iter().for_each(|pkg|{
-            print!("{}-{} ",pkg.name(),pkg.version())
-        });
-        println!();
-        println!("To be removed:");
-        self.alpm.trans_remove().into_iter().for_each(|pkg|{
-            print!("{}-{} ",pkg.name(),pkg.version())
-        });
-        println!();
-        print!("Commit transaction? [y/N]:");
-        io::stdout().flush().unwrap();
-        let question = yesno(false);
-        if let Ok(opt) = question {
-            if let Some(choice) = opt{
-                if choice{
-                    self.alpm.trans_prepare().expect("couldn't prepare transaction");
-                    self.alpm.trans_commit().expect("couldn't run transaction");
-                    self.alpm.trans_release().expect("couldn't release transaction");
-                }
-            }
+        if (self.cbs.transaction_confirmationcb)(self.alpm.trans_add(),self.alpm.trans_remove()){
+            self.alpm.trans_prepare().expect("couldn't prepare transaction");
+            self.alpm.trans_commit().expect("couldn't run transaction");
+            self.alpm.trans_release().expect("couldn't release transaction");
         }
     }
 }
