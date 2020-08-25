@@ -1,4 +1,4 @@
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar,ProgressStyle};
 use std::sync::Mutex;
 use std::collections::HashMap;
 use alpm::Progress;
@@ -12,6 +12,12 @@ pub fn progresscb(progress: Progress, _pkgname: &str, percent: i32, _howmany: us
     if PROGRESS_BARS.lock().unwrap().get(&progress).is_none(){
         if percent < 100{
             let bar = ProgressBar::new(100);
+            bar.set_style(
+                ProgressStyle::default_bar()
+                    .template(" {prefix} [{wide_bar}] {pos}/{len} ")
+                    .progress_chars("=> "),
+            );
+            bar.set_prefix(&format!("{:?}",progress));
             PROGRESS_BARS.lock().unwrap().insert(progress,bar);
         }
     }
