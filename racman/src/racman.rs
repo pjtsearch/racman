@@ -1,9 +1,4 @@
 use quest::yesno;
-use crate::cbs::progress::progresscb;
-use crate::cbs::question::questioncb;
-use crate::cbs::fetch::fetchcb;
-use crate::cbs::event::eventcb;
-use crate::cbs::log::logcb;
 
 use crate::transaction::{Transaction};
 use crate::transaction::install::{InstallTransaction};
@@ -11,13 +6,13 @@ use crate::transaction::upgrade::{UpgradeTransaction};
 use crate::transaction::remove::{RemoveTransaction};
 
 use std::rc::Rc;
-use alpm::{Alpm,TransFlag,Progress,SigLevel,set_logcb,set_eventcb,set_fetchcb,set_questioncb,set_progresscb};
+use alpm::{Alpm,TransFlag,SigLevel};
 
 use std::io;
 use std::io::Write;
 
 pub struct Racman {
-    alpm:Alpm,
+    pub alpm:Alpm,
     transactions:Vec<Rc<dyn Transaction>>
 }
 
@@ -25,11 +20,6 @@ impl Racman {
     pub fn new<'a>()->Result<Racman,alpm::Error>{     
         match Alpm::new("/","/var/lib/pacman") {
             Ok(alpm)=>{
-                set_logcb!(alpm, logcb);
-                set_eventcb!(alpm, eventcb);
-                // set_fetchcb!(alpm, fetchcb);
-                set_questioncb!(alpm, questioncb);
-                set_progresscb!(alpm, progresscb);
                 Ok(Racman {
                     alpm,
                     transactions:vec![]
