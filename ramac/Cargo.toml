@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 alpm = { version = "0.10.0", path = "../alpm" }
+lazy_static = "1.4.0"
+progressing = "2.2.3"

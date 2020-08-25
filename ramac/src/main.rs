@@ -11,7 +11,7 @@ fn main() {
             racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
             racman.add_upgrade();
             racman.add_install("core","nano");
-            racman.add_remove("vi");
+            // racman.add_remove("vi");
             // racman.add_install("core", "perl");
             // racman.add_install("core", "vi");
             // racman.add_install("core", "python-audit");
