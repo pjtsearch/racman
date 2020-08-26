@@ -14,6 +14,8 @@ use crate::transaction::remove::{RemoveTransaction};
 use std::rc::Rc;
 use alpm::{Alpm,TransFlag,SigLevel};
 
+use anyhow::{Context,Result};
+
 pub struct Racman {
     pub alpm:Alpm,
     transactions:Vec<Rc<dyn Transaction>>,
@@ -22,8 +24,11 @@ pub struct Racman {
 }
 
 impl Racman {
-    pub fn new<'a>(root_dir:PathBuf,db_dir:PathBuf)->Result<Racman,alpm::Error>{     
-        let alpm = Alpm::new(root_dir.to_str().ok_or_else(||Error::NotADir)?,db_dir.to_str().ok_or_else(||Error::NotADir)?)?;
+    pub fn new<'a>(root_dir:PathBuf,db_dir:PathBuf)->Result<Racman>{     
+        let alpm = Alpm::new(
+            root_dir.to_str().ok_or_else(||Error::NotADir).context("root dir not a dir")?,
+            db_dir.to_str().ok_or_else(||Error::NotADir).context("db dir not a dir")?
+        )?;
         Ok(Racman {
             alpm,
             transactions:vec![],
@@ -31,7 +36,7 @@ impl Racman {
             cbs:CBs::default()
         })
     }
-    pub fn register_syncdb(&mut self,repo_name:&str,server:&str)->Result<(),Error>{
+    pub fn register_syncdb(&mut self,repo_name:&str,server:&str)->Result<()>{
         let mut syncdb = self.alpm.register_syncdb_mut(repo_name, SigLevel::NONE)?;
         syncdb.add_server(server)?;
         syncdb.update(false)?;
@@ -49,7 +54,7 @@ impl Racman {
     pub fn add_update(&mut self){
         self.actions.push(Rc::new(UpdateAction{}));
     }
-    pub fn commit_transactions(&mut self)->Result<(),Error>{
+    pub fn commit_transactions(&mut self)->Result<()>{
         let add_transactions = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm|->Result<(),Error> {
             transactions.iter().map(|transaction|{
                 transaction.add(alpm)
@@ -64,7 +69,7 @@ impl Racman {
         }
         Ok(())
     }
-    pub fn commit_actions(&mut self)->Result<(),Error>{
+    pub fn commit_actions(&mut self)->Result<()>{
         let add_actions = |actions:&Vec<Rc<dyn Action>>,alpm:&mut Alpm|->Result<(),Error> {
             actions.iter().map(|action|{
                 action.run(alpm)
@@ -73,7 +78,7 @@ impl Racman {
         add_actions(&self.actions,&mut self.alpm)?;
         Ok(())
     }
-    pub fn commit(&mut self)->Result<(),Error>{
+    pub fn commit(&mut self)->Result<()>{
         if self.actions.len() > 0{
             self.commit_actions()?;
         }
