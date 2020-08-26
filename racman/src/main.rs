@@ -38,4 +38,8 @@ fn main() {
         racman.add_remove(package);
         racman.commit_transaction();
     }
+    if let Some(_matches) = matches.subcommand_matches("upgrade") {
+        racman.add_upgrade();
+        racman.commit_transaction();
+    }
 }

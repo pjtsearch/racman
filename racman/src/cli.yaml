@@ -31,3 +31,5 @@ subcommands:
             - PKG:
                 help: Sets the package to install
                 index: 1
+    - upgrade:
+        about: Upgrades all packages
