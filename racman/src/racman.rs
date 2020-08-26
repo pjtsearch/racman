@@ -23,17 +23,13 @@ pub struct Racman {
 
 impl Racman {
     pub fn new<'a>(root_dir:PathBuf,db_dir:PathBuf)->Result<Racman,alpm::Error>{     
-        match Alpm::new(root_dir.to_str().expect("Root dir does not exist"),db_dir.to_str().expect("DB dir does not exist")) {
-            Ok(alpm)=>{
-                Ok(Racman {
-                    alpm,
-                    transactions:vec![],
-                    actions:vec![],
-                    cbs:CBs::default()
-                })
-            },
-            Err(err)=>Err(err)
-        }
+        let alpm = Alpm::new(root_dir.to_str().ok_or_else(||Error::NotADir)?,db_dir.to_str().ok_or_else(||Error::NotADir)?)?;
+        Ok(Racman {
+            alpm,
+            transactions:vec![],
+            actions:vec![],
+            cbs:CBs::default()
+        })
     }
     pub fn register_syncdb(&mut self,repo_name:&str,server:&str)->Result<(),Error>{
         let mut syncdb = self.alpm.register_syncdb_mut(repo_name, SigLevel::NONE)?;
