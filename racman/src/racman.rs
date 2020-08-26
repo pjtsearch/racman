@@ -1,3 +1,5 @@
+use crate::action::update::UpdateAction;
+use crate::action::Action;
 use std::path::PathBuf;
 use crate::set_cbs::CBs;
 
@@ -12,6 +14,7 @@ use alpm::{Alpm,TransFlag,SigLevel};
 pub struct Racman {
     pub alpm:Alpm,
     transactions:Vec<Rc<dyn Transaction>>,
+    actions:Vec<Rc<dyn Action>>,
     pub cbs:CBs
 }
 
@@ -22,6 +25,7 @@ impl Racman {
                 Ok(Racman {
                     alpm,
                     transactions:vec![],
+                    actions:vec![],
                     cbs:CBs::default()
                 })
             },
@@ -43,7 +47,10 @@ impl Racman {
     pub fn add_remove(&mut self,name:&str){
         self.transactions.push(Rc::new(RemoveTransaction{name:name.to_owned()}));
     }
-    pub fn commit_transaction(&mut self){
+    pub fn add_update(&mut self){
+        self.actions.push(Rc::new(UpdateAction{}));
+    }
+    pub fn commit_transactions(&mut self){
         let add_transactions = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm| {
             transactions.iter().for_each(|transaction|{
                 transaction.add(alpm);
@@ -55,6 +62,22 @@ impl Racman {
             self.alpm.trans_prepare().expect("couldn't prepare transaction");
             self.alpm.trans_commit().expect("couldn't run transaction");
             self.alpm.trans_release().expect("couldn't release transaction");
+        }
+    }
+    pub fn commit_actions(&mut self){
+        let add_actions = |actions:&Vec<Rc<dyn Action>>,alpm:&mut Alpm| {
+            actions.iter().for_each(|action|{
+                action.run(alpm);
+            });
+        };
+        add_actions(&self.actions,&mut self.alpm);
+    }
+    pub fn commit(&mut self){
+        if self.actions.len() > 0{
+            self.commit_actions();
+        }
+        if self.transactions.len() > 0{
+            self.commit_transactions();
         }
     }
 }

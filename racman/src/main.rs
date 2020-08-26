@@ -1,4 +1,5 @@
 mod transaction;
+mod action;
 mod cbs;
 mod racman;
 mod set_cbs;
@@ -31,15 +32,16 @@ fn main() {
         let syncdb = matches.value_of("SYNCDB").expect("No syncdb selected");
         let package = matches.value_of("PKG").expect("No package selected");
         racman.add_install(syncdb,package);
-        racman.commit_transaction();
     }
     if let Some(matches) = matches.subcommand_matches("uninstall") {
         let package = matches.value_of("PKG").expect("No package selected");
         racman.add_remove(package);
-        racman.commit_transaction();
+    }
+    if let Some(_matches) = matches.subcommand_matches("update") {
+        racman.add_update();
     }
     if let Some(_matches) = matches.subcommand_matches("upgrade") {
         racman.add_upgrade();
-        racman.commit_transaction();
     }
+    racman.commit();
 }

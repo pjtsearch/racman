@@ -33,3 +33,5 @@ subcommands:
                 index: 1
     - upgrade:
         about: Upgrades all packages
+    - update:
+        about: Updates all syncdbs
