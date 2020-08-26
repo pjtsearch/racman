@@ -1,3 +1,5 @@
+use alpm::CommitReturn;
+use alpm::PrepareReturn;
 use alpm::Error;
 use crate::action::update::UpdateAction;
 use crate::action::Action;
@@ -60,9 +62,9 @@ impl Racman {
         self.alpm.trans_init(TransFlag::NONE)?;
         add_transactions(&self.transactions,&mut self.alpm)?;
         if (self.cbs.transaction_confirmationcb)(self.alpm.trans_add(),self.alpm.trans_remove()){
-            self.alpm.trans_prepare().expect("couldn't prepare transaction");
-            self.alpm.trans_commit().expect("couldn't run transaction");
-            self.alpm.trans_release().expect("couldn't release transaction");
+            self.alpm.trans_prepare().or_else(|error:(PrepareReturn, Error)|Err(error.1))?;
+            self.alpm.trans_commit().or_else(|error:(CommitReturn, Error)|Err(error.1))?;
+            self.alpm.trans_release()?;
         }
         Ok(())
     }
