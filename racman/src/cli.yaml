@@ -19,9 +19,12 @@ subcommands:
     - install:
         about: Installs a package
         args:
-            - PKG:
-                help: Sets the package to install
+          - SYNCDB:
+                help: Sets the syncdb to install from
                 index: 1
+          - PKG:
+              help: Sets the package to install
+              index: 2
     - uninstall:
         about: Uninstalls a package
         args:

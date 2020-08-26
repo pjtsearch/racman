@@ -29,9 +29,10 @@ impl Racman {
         }
     }
     pub fn register_syncdb(&mut self,repo_name:&str,server:&str){
-        let syncdb = self.alpm.register_syncdb_mut(repo_name, SigLevel::NONE).unwrap();
+        let mut syncdb = self.alpm.register_syncdb_mut(repo_name, SigLevel::NONE).unwrap();
         syncdb.add_server(server)
             .unwrap();
+        syncdb.update(false).expect("failed to update");
     }
     pub fn add_install(&mut self,repo_name:&str,name:&str){
         self.transactions.push(Rc::new(InstallTransaction{repo_name:repo_name.to_owned().clone(),name:name.to_owned().clone()}));

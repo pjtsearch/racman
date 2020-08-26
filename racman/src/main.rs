@@ -17,24 +17,25 @@ fn main() {
     let root_dir = PathBuf::from(matches.value_of("root_dir").unwrap_or("/"));
     let db_dir = PathBuf::from(matches.value_of("db_dir").unwrap_or("/var/lib/pacman"));
 
-    match Racman::new(root_dir,db_dir) {
-        Ok(mut racman)=>{
-            racman.set_eventcb(eventcb);
-            racman.set_logcb(logcb);
-            racman.set_questioncb(questioncb);
-            racman.set_progresscb(progresscb);
-            racman.set_transaction_confirmationcb(transaction_confirmationcb);
-            racman.register_syncdb("core", "http://mirrors.evowise.com/archlinux/core/os/x86_64/");
-            racman.register_syncdb("extra", "http://mirrors.evowise.com/archlinux/extra/os/x86_64/");
-            racman.register_syncdb("community", "http://mirrors.evowise.com/archlinux/community/os/x86_64/");
-            // racman.add_upgrade();
-            racman.add_install("community","nodejs");
-            // racman.add_remove("vi");
-            // racman.add_install("core", "perl");
-            // racman.add_install("core", "vi");
-            // racman.add_install("core", "python-audit");
-            racman.commit_transaction();
-        },
-        Err(error)=>panic!(error)
+    let mut racman = Racman::new(root_dir,db_dir).expect("could not create racman instance");
+    racman.set_eventcb(eventcb);
+    racman.set_logcb(logcb);
+    racman.set_questioncb(questioncb);
+    racman.set_progresscb(progresscb);
+    racman.set_transaction_confirmationcb(transaction_confirmationcb);
+    racman.register_syncdb("core", "http://mirrors.kernel.org/archlinux/core/os/x86_64/");
+    racman.register_syncdb("extra", "http://mirrors.kernel.org/archlinux/extra/os/x86_64/");
+    racman.register_syncdb("community", "http://mirrors.kernel.org/archlinux/community/os/x86_64/");
+
+    if let Some(matches) = matches.subcommand_matches("install") {
+        let syncdb = matches.value_of("SYNCDB").expect("No syncdb selected");
+        let package = matches.value_of("PKG").expect("No package selected");
+        racman.add_install(syncdb,package);
+        racman.commit_transaction();
+    }
+    if let Some(matches) = matches.subcommand_matches("uninstall") {
+        let package = matches.value_of("PKG").expect("No package selected");
+        racman.add_remove(package);
+        racman.commit_transaction();
     }
 }

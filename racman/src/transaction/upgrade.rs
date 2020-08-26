@@ -8,6 +8,13 @@ pub struct UpgradeTransaction{
 impl Transaction for UpgradeTransaction {
     fn add(&self,alpm:&mut Alpm){
         let mut will_upgrade = false;
+        for mut db in alpm.syncdbs_mut(){
+            // println!("{}", db.name());
+            db.update(true).expect("failed to update");
+            // if db.pkg("libx11").is_ok() {
+            //     println!("{}", db.pkg("libx11").unwrap().version());
+            // }
+        }
         for db in alpm.syncdbs(){
             let local_pkgs = alpm.localdb().pkgs().unwrap();
             local_pkgs.into_iter().for_each(|pkg|{
