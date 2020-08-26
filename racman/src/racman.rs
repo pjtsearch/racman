@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use crate::set_cbs::CBs;
 
 use crate::transaction::{Transaction};
@@ -15,8 +16,8 @@ pub struct Racman {
 }
 
 impl Racman {
-    pub fn new<'a>()->Result<Racman,alpm::Error>{     
-        match Alpm::new("/","/var/lib/pacman") {
+    pub fn new<'a>(root_dir:PathBuf,db_dir:PathBuf)->Result<Racman,alpm::Error>{     
+        match Alpm::new(root_dir.to_str().expect("Root dir does not exist"),db_dir.to_str().expect("DB dir does not exist")) {
             Ok(alpm)=>{
                 Ok(Racman {
                     alpm,

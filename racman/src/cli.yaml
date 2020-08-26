@@ -1,0 +1,30 @@
+name: racman
+version: "0.1.0"
+author: Peter PJT <pjtsignups@gmail.com>
+about: A simple Arch Linux package manager
+args:
+    - root_dir:
+        short: r
+        long: rdir
+        value_name: DIR
+        help: Sets a custom root directory
+        takes_value: true
+    - db_dir:
+        short: d
+        long: ddir
+        value_name: DIR
+        help: Sets a custom db directory
+        takes_value: true
+subcommands:
+    - install:
+        about: Installs a package
+        args:
+            - PKG:
+                help: Sets the package to install
+                index: 1
+    - uninstall:
+        about: Uninstalls a package
+        args:
+            - PKG:
+                help: Sets the package to install
+                index: 1

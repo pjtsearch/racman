@@ -9,9 +9,15 @@ use crate::cbs::log::logcb;
 use crate::cbs::event::eventcb;
 use crate::set_cbs::SetCBs;
 use racman::Racman;
-
+use clap::{App, load_yaml};
+use std::path::PathBuf;
 fn main() {
-    match Racman::new() {
+    let cli = load_yaml!("./cli.yaml");
+    let matches = App::from_yaml(cli).get_matches();
+    let root_dir = PathBuf::from(matches.value_of("root_dir").unwrap_or("/"));
+    let db_dir = PathBuf::from(matches.value_of("db_dir").unwrap_or("/var/lib/pacman"));
+
+    match Racman::new(root_dir,db_dir) {
         Ok(mut racman)=>{
             racman.set_eventcb(eventcb);
             racman.set_logcb(logcb);

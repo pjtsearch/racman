@@ -11,3 +11,4 @@ alpm = { version = "0.10.0", path = "../alpm" }
 lazy_static = "1.4.0"
 indicatif = "0.15.0"
 quest = "0.3.0"
+clap={version="2.33.3", features = ["yaml"]}
