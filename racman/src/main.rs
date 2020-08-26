@@ -24,9 +24,9 @@ fn main() {
     racman.set_questioncb(questioncb);
     racman.set_progresscb(progresscb);
     racman.set_transaction_confirmationcb(transaction_confirmationcb);
-    racman.register_syncdb("core", "http://mirrors.kernel.org/archlinux/core/os/x86_64/");
-    racman.register_syncdb("extra", "http://mirrors.kernel.org/archlinux/extra/os/x86_64/");
-    racman.register_syncdb("community", "http://mirrors.kernel.org/archlinux/community/os/x86_64/");
+    racman.register_syncdb("core", "http://mirrors.kernel.org/archlinux/core/os/x86_64/").expect("could not register syncdb");
+    racman.register_syncdb("extra", "http://mirrors.kernel.org/archlinux/extra/os/x86_64/").expect("could not register syncdb");
+    racman.register_syncdb("community", "http://mirrors.kernel.org/archlinux/community/os/x86_64/").expect("could not register syncdb");
 
     if let Some(matches) = matches.subcommand_matches("install") {
         let syncdb = matches.value_of("SYNCDB").expect("No syncdb selected");
@@ -43,5 +43,5 @@ fn main() {
     if let Some(_matches) = matches.subcommand_matches("upgrade") {
         racman.add_upgrade();
     }
-    racman.commit();
+    racman.commit().expect("could not commit");
 }

@@ -1,3 +1,4 @@
+use alpm::Error;
 use alpm::Alpm;
 use crate::transaction::Transaction;
 
@@ -7,9 +8,10 @@ pub struct RemoveTransaction{
 }
 
 impl Transaction for RemoveTransaction {
-    fn add(&self,alpm:&mut Alpm){
+    fn add(&self,alpm:&mut Alpm)->Result<(),Error>{
         let db = alpm.localdb();
-        let package = db.pkg(&self.name).unwrap();
-        alpm.trans_remove_pkg(package).expect("couldn't add pkg to transaction");
+        let package = db.pkg(&self.name)?;
+        alpm.trans_remove_pkg(package)?;
+        Ok(())
     }
 }

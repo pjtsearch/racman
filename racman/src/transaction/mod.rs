@@ -2,8 +2,9 @@ pub mod install;
 pub mod remove;
 pub mod upgrade;
 
+use alpm::Error;
 use alpm::Alpm;
 
 pub trait Transaction {
-    fn add(&self,alpm:&mut Alpm);
+    fn add(&self,alpm:&mut Alpm)->Result<(),Error>;
 }

@@ -1,3 +1,4 @@
+use alpm::Error;
 use alpm::Alpm;
 use crate::transaction::Transaction;
 
@@ -8,9 +9,10 @@ pub struct InstallTransaction{
 }
 
 impl Transaction for InstallTransaction {
-    fn add(&self,alpm:&mut Alpm){
-        let db = alpm.syncdbs().find(|db| db.name() == self.repo_name).unwrap();
-        let package = db.pkg(&self.name).unwrap();
+    fn add(&self,alpm:&mut Alpm)->Result<(),Error>{
+        let db = alpm.syncdbs().find(|db| db.name() == self.repo_name).ok_or_else(||Error::DbNotFound)?;
+        let package = db.pkg(&self.name)?;
         alpm.trans_add_pkg(package).expect("couldn't add pkg to transaction");
+        Ok(())
     }
 }
