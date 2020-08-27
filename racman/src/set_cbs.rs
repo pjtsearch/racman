@@ -97,7 +97,7 @@ impl SetCBs for Racman {
             let n = vasprintf(&buff, fmt, args);
             if n != -1 {
                 let s = CStr::from_ptr(buff);
-                let level = LogLevel::from_bits(level).unwrap();
+                let level = LogLevel::from_bits(level).expect("could not create log level from bits");
                 CB(level, &s.to_string_lossy());
                 free(buff as *mut c_void);
             }
@@ -149,7 +149,7 @@ impl SetCBs for Racman {
             current: usize,
         ) {
             let pkgname = CStr::from_ptr(pkgname);
-            let pkgname = pkgname.to_str().unwrap();
+            let pkgname = pkgname.to_str().expect("could not convert package name to string");
             let progress = transmute::<alpm_progress_t, Progress>(progress);
             CB(progress, &pkgname, percent as i32, howmany, current);
         }

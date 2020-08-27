@@ -9,8 +9,8 @@ lazy_static! {
 }
 
 pub fn progresscb(progress: Progress, _pkgname: &str, percent: i32, _howmany: usize, _current: usize) {
-    if PROGRESS_BARS.lock().unwrap().get(&progress).is_none(){
-        if percent < 100{
+    if let Ok(mut progress_bars) = PROGRESS_BARS.lock() {
+        if progress_bars.get(&progress).is_none() && percent < 100 {
             let bar = ProgressBar::new(100);
             bar.set_style(
                 ProgressStyle::default_bar()
@@ -18,16 +18,15 @@ pub fn progresscb(progress: Progress, _pkgname: &str, percent: i32, _howmany: us
                     .progress_chars("=> "),
             );
             bar.set_prefix(&format!("{:?}",progress));
-            PROGRESS_BARS.lock().unwrap().insert(progress,bar);
+            progress_bars.insert(progress,bar);
         }
-    }
 
-    let mut progress_bars = PROGRESS_BARS.lock().unwrap();
-    if let Some(progress_bar) = progress_bars.get_mut(&progress){
-        progress_bar.set_position(percent as u64);
-        if percent == 100 {
-            progress_bar.finish();
-            progress_bars.remove(&progress);
+        if let Some(progress_bar) = progress_bars.get_mut(&progress) {
+            progress_bar.set_position(percent as u64);
+            if percent == 100 {
+                progress_bar.finish();
+                progress_bars.remove(&progress);
+            }
         }
     }
 }

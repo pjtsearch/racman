@@ -18,7 +18,7 @@ pub fn transaction_confirmationcb(adding:AlpmList<Package>,removing:AlpmList<Pac
     });
     println!();
     print!("Commit transaction? [y/N]:");
-    io::stdout().flush().unwrap();
+    let _ = io::stdout().flush();
     let question = yesno(false);
     if let Ok(opt) = question {
         if let Some(choice) = opt{
