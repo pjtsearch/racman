@@ -18,20 +18,32 @@ args:
 subcommands:
     - install:
         about: Installs a package
+        aliases: 
+            - i
+            - add
+            - a
         args:
-          - SYNCDB:
-                help: Sets the syncdb to install from
-                index: 1
-          - PKG:
-              help: Sets the package to install
-              index: 2
+            - SYNCDB:
+                    help: Sets the syncdb to install from
+                    index: 1
+            - PKG:
+                help: Sets the package to install
+                index: 2
     - uninstall:
         about: Uninstalls a package
+        aliases:
+            - un
+            - remove
+            - r
         args:
             - PKG:
                 help: Sets the package to install
                 index: 1
     - upgrade:
         about: Upgrades all packages
+        aliases:
+            - ug
     - update:
         about: Updates all syncdbs
+        aliases: 
+            - ud
