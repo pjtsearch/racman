@@ -8,16 +8,28 @@ lazy_static! {
     static ref PROGRESS_BARS:Mutex<HashMap<Progress,ProgressBar>> = Mutex::new(HashMap::new());
 }
 
-pub fn progresscb(progress: Progress, _pkgname: &str, percent: i32, _howmany: usize, _current: usize) {
+pub fn progresscb(progress: Progress, pkgname: &str, percent: i32, _howmany: usize, _current: usize) {
+    let message = match progress {
+        Progress::AddStart=>"Adding",
+        Progress::UpgradeStart=>"Upgrading",
+        Progress::DowngradeStart=>"Downgrading",
+        Progress::ReinstallStart=>"Reinstalling",
+        Progress::RemoveStart=>"Removing",
+        Progress::ConflictsStart=>"Checking conflicts",
+        Progress::DiskspaceStart=>"Checking disk space",
+        Progress::IntegrityStart=>"Checking integrity",
+        Progress::LoadStart=>"Loading",
+        Progress::KeyringStart=>"Getting keyring"
+    };
     if let Ok(mut progress_bars) = PROGRESS_BARS.lock() {
         if progress_bars.get(&progress).is_none() && percent < 100 {
             let bar = ProgressBar::new(100);
             bar.set_style(
                 ProgressStyle::default_bar()
-                    .template("   {prefix} [{wide_bar}] {pos}/{len} ")
+                    .template("{prefix} [{wide_bar}] {pos}/{len} ")
                     .progress_chars("=> "),
             );
-            bar.set_prefix(&format!("{:?}",progress));
+            bar.set_prefix(&format!("{} {}",message, pkgname));
             progress_bars.insert(progress,bar);
         }
 
