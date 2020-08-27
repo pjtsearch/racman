@@ -42,8 +42,8 @@ impl Racman {
         syncdb.update(false)?;
         Ok(())
     }
-    pub fn add_install(&mut self,repo_name:&str,name:&str){
-        self.transactions.push(Rc::new(InstallTransaction{repo_name:repo_name.to_owned().clone(),name:name.to_owned().clone()}));
+    pub fn add_install(&mut self,name:&str){
+        self.transactions.push(Rc::new(InstallTransaction{name:name.to_owned().clone()}));
     }
     pub fn add_upgrade(&mut self){
         self.transactions.push(Rc::new(UpgradeTransaction{}));
@@ -55,10 +55,10 @@ impl Racman {
         self.actions.push(Rc::new(UpdateAction{}));
     }
     pub fn commit_transactions(&mut self)->Result<()>{
-        let add_transactions = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm|->Result<(),Error> {
+        let add_transactions = |transactions:&Vec<Rc<dyn Transaction>>,alpm:&mut Alpm|->Result<()> {
             transactions.iter().map(|transaction|{
                 transaction.add(alpm)
-            }).collect::<Result<(),Error>>()
+            }).collect::<Result<()>>()
         };
         self.alpm.trans_init(TransFlag::NONE)?;
         add_transactions(&self.transactions,&mut self.alpm)?;
@@ -70,10 +70,10 @@ impl Racman {
         Ok(())
     }
     pub fn commit_actions(&mut self)->Result<()>{
-        let add_actions = |actions:&Vec<Rc<dyn Action>>,alpm:&mut Alpm|->Result<(),Error> {
+        let add_actions = |actions:&Vec<Rc<dyn Action>>,alpm:&mut Alpm|->Result<()> {
             actions.iter().map(|action|{
                 action.run(alpm)
-            }).collect::<Result<(),Error>>()
+            }).collect::<Result<()>>()
         };
         add_actions(&self.actions,&mut self.alpm)?;
         Ok(())

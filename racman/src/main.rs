@@ -31,9 +31,8 @@ fn main() ->Result<()>{
     racman.register_syncdb("community", "http://mirrors.kernel.org/archlinux/community/os/x86_64/").context("could not register syncdb")?;
 
     if let Some(matches) = matches.subcommand_matches("install") {
-        let syncdb = matches.value_of("SYNCDB").context("No syncdb selected")?;
         let package = matches.value_of("PKG").context("No package selected")?;
-        racman.add_install(syncdb,package);
+        racman.add_install(package);
     }
     if let Some(matches) = matches.subcommand_matches("uninstall") {
         let package = matches.value_of("PKG").context("No package selected")?;

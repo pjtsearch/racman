@@ -23,12 +23,9 @@ subcommands:
             - add
             - a
         args:
-            - SYNCDB:
-                    help: Sets the syncdb to install from
-                    index: 1
             - PKG:
                 help: Sets the package to install
-                index: 2
+                index: 1
     - uninstall:
         about: Uninstalls a package
         aliases:
