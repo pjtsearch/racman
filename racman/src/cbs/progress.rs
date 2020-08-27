@@ -8,8 +8,8 @@ lazy_static! {
     static ref PROGRESS_BARS:Mutex<HashMap<Progress,ProgressBar>> = Mutex::new(HashMap::new());
 }
 
-pub fn progresscb(progress: Progress, pkgname: &str, percent: i32, _howmany: usize, _current: usize) {
-    let message = match progress {
+pub fn progresscb(progress: Progress, pkgname: &str, percent: i32, howmany: usize, current: usize) {
+    let status = match progress {
         Progress::AddStart=>"Adding",
         Progress::UpgradeStart=>"Upgrading",
         Progress::DowngradeStart=>"Downgrading",
@@ -26,15 +26,17 @@ pub fn progresscb(progress: Progress, pkgname: &str, percent: i32, _howmany: usi
             let bar = ProgressBar::new(100);
             bar.set_style(
                 ProgressStyle::default_bar()
-                    .template("{prefix} [{wide_bar}] {pos}/{len} ")
+                    .template("{prefix} [{wide_bar}] {msg} ")
                     .progress_chars("=> "),
             );
-            bar.set_prefix(&format!("{} {}",message, pkgname));
+            bar.set_prefix(&format!("{} {}",status, pkgname));
+            bar.set_message(&format!("{}/{}",current,howmany));
             progress_bars.insert(progress,bar);
         }
 
         if let Some(progress_bar) = progress_bars.get_mut(&progress) {
             progress_bar.set_position(percent as u64);
+            progress_bar.set_message(&format!("{}/{}",current,howmany));
             if percent == 100 {
                 progress_bar.finish();
                 progress_bars.remove(&progress);
